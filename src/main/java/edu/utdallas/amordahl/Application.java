@@ -97,7 +97,8 @@ class Application {
 
     private static String getSourceCodeLine(int lineNumber, CGNode cgn, String jarFile) throws IOException {
         try {
-            String fileName = cgn.getMethod().getDeclaringClass().getSourceFileName();
+            // Yes, I know there is a .getSourceFileName() method. It doesn't work for anonymous classes.
+            String fileName = cgn.getMethod().getDeclaringClass().getName().toString().substring(1).split("\\$")[0] + ".java";
             JarFile jf = new JarFile(jarFile);
             ZipEntry sourceFile = jf.getEntry(fileName);
             InputStream is = jf.getInputStream(sourceFile);
