@@ -51,30 +51,34 @@ class Application {
         fw.write("caller\tcallsite\tcalling_context\ttarget\ttarget_context\n");
         for (CGNode cgn : cg) {
             Iterator<CallSiteReference> callSiteIterator = cgn.iterateCallSites();
-            if (!cgn.getMethod().isWalaSynthetic()) {
-                while (callSiteIterator.hasNext()) {
-                    CallSiteReference csi = callSiteIterator.next();
-                    for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
+            while (callSiteIterator.hasNext()) {
+                CallSiteReference csi = callSiteIterator.next();
+                for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
+                    String sourceLine = null;
+                    try {
                         int lineNumber = getLineNumber(cgn, csi);
-                        String sourceLine = Application.getSourceCodeLine(lineNumber, cgn, clo.appJar);
-                        String outLine = sourceLine == null ? csi.toString() : sourceLine;
-                        fw.write(String.format(
-                                        "%s\t%s\t%s\t%s\t%s\n",
-                                        cgn.getMethod(),
-                                        outLine,
-                                        cgn.getContext(),
-                                        target.getMethod(),
-                                        target.getContext()));
+                        sourceLine = Application.getSourceCodeLine(lineNumber, cgn, clo.appJar);
+                    } catch (Throwable tr) {
+                        System.err.println("Could not find source callsite for " + cgn.getMethod().toString() + ":" + csi.toString());
                     }
+                    String outLine = sourceLine == null ? csi.toString() : sourceLine;
+                    fw.write(String.format(
+                            "%s\t%s\t%s\t%s\t%s\n",
+                            cgn.getMethod(),
+                            outLine,
+                            cgn.getContext(),
+                            target.getMethod(),
+                            target.getContext()));
                 }
             }
+
         }
         fw.close();
     }
 
     private static int getLineNumber(CGNode cgn, CallSiteReference csi) throws InvalidClassFileException {
         // Get the IR object associated with the CGNode that contains the call site reference.
-        IR ir = ((ExplicitCallGraph.ExplicitNode)(cgn)).getIR();
+        IR ir = ((ExplicitCallGraph.ExplicitNode) (cgn)).getIR();
         for (SSAInstruction s : ir.getInstructions()) {
             if (!cgn.getMethod().isWalaSynthetic()) { // We don't care about WALA's synthetic methods
                 String site = null;
@@ -84,8 +88,7 @@ class Application {
                     site = ((SSAInvokeInstruction) s).getCallSite().toString();
                 }
                 if (site != null && site.equals(csi.toString())) {
-                    System.out.println("Site");
-                    return ir.getMethod().getLineNumber(((IBytecodeMethod)ir.getMethod()).getBytecodeIndex(s.iIndex()));
+                    return ir.getMethod().getLineNumber(((IBytecodeMethod) ir.getMethod()).getBytecodeIndex(s.iIndex()));
                 }
             }
         }
@@ -93,16 +96,16 @@ class Application {
     }
 
     private static String getSourceCodeLine(int lineNumber, CGNode cgn, String jarFile) throws IOException {
-       try {
-           String fileName = cgn.getMethod().getDeclaringClass().getSourceFileName();
-           JarFile jf = new JarFile(jarFile);
-           ZipEntry sourceFile = jf.getEntry(fileName);
-           InputStream is = jf.getInputStream(sourceFile);
-           List<String> br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-           return br.get(lineNumber - 1);
-       } catch (IOException ie) {
-           return null;
-       }
+        try {
+            String fileName = cgn.getMethod().getDeclaringClass().getSourceFileName();
+            JarFile jf = new JarFile(jarFile);
+            ZipEntry sourceFile = jf.getEntry(fileName);
+            InputStream is = jf.getInputStream(sourceFile);
+            List<String> br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
+            return cgn.getMethod().getDeclaringClass().getName() + ":" + lineNumber + " " + br.get(lineNumber - 1).trim();
+        } catch (IOException ie) {
+            return null;
+        }
     }
 
     public CallGraph makeCallGraph(CommandLineOptions clo)
@@ -132,7 +135,7 @@ class Application {
                 builder = Util.makeNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
                 break;
             case NOBJ:
-                builder = Util.makeNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha,scope);
+                builder = Util.makeNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
                 break;
             case VANILLA_NCFA:
                 builder =
