@@ -43,10 +43,10 @@ public class CommandLineOptions {
     boolean usageHelpRequested;
 
     @Option(
-            names = "--srcZips",
-            description = "A list of zip files we will look for sources in."
+            names = "--source-numbers",
+            description = "Print out source numbers instead of IR for call sites."
     )
-    public List<Path> srcZips = new ArrayList<>();
+    public boolean sourceNumbers;
     @Option(
             names = "--handleStaticInit",
             description =

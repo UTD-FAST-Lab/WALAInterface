@@ -70,19 +70,16 @@ class Application {
             while (callSiteIterator.hasNext()) {
                 CallSiteReference csi = callSiteIterator.next();
                 for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
-                    String sourceLine = null;
-                    try {
+                    String outLine = null;
+                    if (clo.sourceNumbers) {
                         int lineNumber = getLineNumber(cgn, csi);
-                        sourceLine = Application.getSourceCodeLine(lineNumber, cgn, clo.appJar);
-                    } catch (IOException | ArrayIndexOutOfBoundsException ie) {
-                        logger.info(String.format("Issue when tried to find line number of %s in caller %s. " +
-                                "This might not be an issue!", csi.toString(), cgn.getMethod().toString()), ie);
-                        sourceLine = null;
+                        outLine = lineNumber == -1 ? "N/A" :
+                                String.format("%s:%d", cgn.getMethod().getDeclaringClass().getName().
+                                                toString().substring(1), // substring to remove the L from the beginning of the type
+                                lineNumber);
+                    } else {
+                        outLine = csi.toString();
                     }
-                    if (sourceLine == null) {
-                        logger.warn(String.format("Could not find source callsite for %s:%s", cgn.getMethod().toString(), csi.toString()));
-                    }
-                    String outLine = sourceLine == null ? csi.toString() : sourceLine;
                     fw.write(String.format(
                             "%s\t%s\t%s\t%s\t%s\n",
                             cgn.getMethod(),
@@ -114,31 +111,6 @@ class Application {
             }
         }
         return -1;
-    }
-
-    private static String getSourceCodeLine(int lineNumber, CGNode cgn, String jarFile) throws IOException {
-        try {
-            // Yes, I know there is a .getSourceFileName() method. It doesn't work for anonymous classes.
-            String fileName = cgn.getMethod().getDeclaringClass().getName().toString().substring(1).split("\\$")[0] + ".java";
-            JarFile jf = new JarFile(jarFile);
-            List<ZipFile> zipsToTry = new ArrayList<>();
-            zipsToTry.add(jf);
-            for (Path p: clo.srcZips) {
-                zipsToTry.add(new ZipFile(p.toFile()));
-            }
-            for (ZipFile zf: zipsToTry) {
-                if (zf.getEntry(fileName) != null) {
-                    InputStream is = zf.getInputStream(zf.getEntry(fileName));
-                    List<String> br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-                    return String.format("%s:%d %s", cgn.getMethod().getDeclaringClass().getName().toString().substring(1), // substring to remove the L from the beginning of the type
-                           lineNumber, br.get(lineNumber - 1).trim());
-                }
-            }
-            // The source file was not found in the files.
-            return null;
-        } catch (IOException ie) {
-            return null;
-        }
     }
 
     public CallGraph makeCallGraph(CommandLineOptions clo)
