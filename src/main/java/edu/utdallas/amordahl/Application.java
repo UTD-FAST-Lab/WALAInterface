@@ -29,24 +29,40 @@ import com.ibm.wala.util.WalaException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 class Application {
 
     private String jarFile;
 
+    private static Logger logger = LoggerFactory.getLogger(Application.class);
+
+    private static CommandLineOptions clo;
+
     public static void main(String[] args)
             throws WalaException, CallGraphBuilderCancelException, IOException, InvalidClassFileException {
-        CommandLineOptions clo = new CommandLineOptions();
+        // Initialize command line and print help if requested.
+        Application.clo = new CommandLineOptions();
         new CommandLine(clo).parseArgs(args);
+        if (clo.usageHelpRequested) {
+            CommandLine.usage(new CommandLineOptions(), System.out);
+            return;
+        }
+
+        // Build call graph.
         CallGraph cg = new Application().makeCallGraph(clo);
 
+        // Print to output.
         FileWriter fw = new FileWriter(String.valueOf(clo.callgraphOutput));
         fw.write("caller\tcallsite\tcalling_context\ttarget\ttarget_context\n");
         for (CGNode cgn : cg) {
@@ -58,8 +74,13 @@ class Application {
                     try {
                         int lineNumber = getLineNumber(cgn, csi);
                         sourceLine = Application.getSourceCodeLine(lineNumber, cgn, clo.appJar);
-                    } catch (Throwable tr) {
-                        System.err.println("Could not find source callsite for " + cgn.getMethod().toString() + ":" + csi.toString());
+                    } catch (IOException | ArrayIndexOutOfBoundsException ie) {
+                        logger.info(String.format("Issue when tried to find line number of %s in caller %s. " +
+                                "This might not be an issue!", csi.toString(), cgn.getMethod().toString()), ie);
+                        sourceLine = null;
+                    }
+                    if (sourceLine == null) {
+                        logger.warn(String.format("Could not find source callsite for %s:%s", cgn.getMethod().toString(), csi.toString()));
                     }
                     String outLine = sourceLine == null ? csi.toString() : sourceLine;
                     fw.write(String.format(
@@ -100,10 +121,21 @@ class Application {
             // Yes, I know there is a .getSourceFileName() method. It doesn't work for anonymous classes.
             String fileName = cgn.getMethod().getDeclaringClass().getName().toString().substring(1).split("\\$")[0] + ".java";
             JarFile jf = new JarFile(jarFile);
-            ZipEntry sourceFile = jf.getEntry(fileName);
-            InputStream is = jf.getInputStream(sourceFile);
-            List<String> br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-            return cgn.getMethod().getDeclaringClass().getName() + ":" + lineNumber + " " + br.get(lineNumber - 1).trim();
+            List<ZipFile> zipsToTry = new ArrayList<>();
+            zipsToTry.add(jf);
+            for (Path p: clo.srcZips) {
+                zipsToTry.add(new ZipFile(p.toFile()));
+            }
+            for (ZipFile zf: zipsToTry) {
+                if (zf.getEntry(fileName) != null) {
+                    InputStream is = zf.getInputStream(zf.getEntry(fileName));
+                    List<String> br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
+                    return String.format("%s:%d %s", cgn.getMethod().getDeclaringClass().getName().toString().substring(1), // substring to remove the L from the beginning of the type
+                           lineNumber, br.get(lineNumber - 1).trim());
+                }
+            }
+            // The source file was not found in the files.
+            return null;
         } catch (IOException ie) {
             return null;
         }

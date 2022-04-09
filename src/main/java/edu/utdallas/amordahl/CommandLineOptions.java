@@ -2,6 +2,9 @@ package edu.utdallas.amordahl;
 
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 import picocli.CommandLine.Option;
 
 public class CommandLineOptions {
@@ -36,6 +39,14 @@ public class CommandLineOptions {
       + "with string constant arguments be ignored?")
   public boolean ignoreStringConstants;*/
 
+    @Option(names = {"-h", "--help"}, usageHelp = true, description = "display this help message")
+    boolean usageHelpRequested;
+
+    @Option(
+            names = "--srcZips",
+            description = "A list of zip files we will look for sources in."
+    )
+    public List<Path> srcZips = new ArrayList<>();
     @Option(
             names = "--handleStaticInit",
             description =
