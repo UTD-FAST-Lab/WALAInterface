@@ -64,14 +64,13 @@ class Application {
 
         // Print to output.
         FileWriter fw = new FileWriter(String.valueOf(clo.callgraphOutput));
-        fw.write("caller\tcallsite\tcalling_context\ttarget\ttarget_context\n");
         for (CGNode cgn : cg) {
             Iterator<CallSiteReference> callSiteIterator = cgn.iterateCallSites();
             while (callSiteIterator.hasNext()) {
                 CallSiteReference csi = callSiteIterator.next();
                 for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
                     String outLine = null;
-                    if (clo.sourceNumbers) {
+                    if (!clo.noSourceNumbers) {
                         int lineNumber = getLineNumber(cgn, csi);
                         outLine = lineNumber == -1 ? "N/A" :
                                 String.format("%s:%d", cgn.getMethod().getDeclaringClass().getName().
@@ -85,12 +84,12 @@ class Application {
                             cgn.getMethod(),
                             outLine,
                             cgn.getContext(),
-                            target.getMethod(),
+                            target.getMethod().getSignature(),
                             target.getContext()));
                 }
             }
-
         }
+        System.out.println("Wrote callgraph to " + clo.callgraphOutput.toString());
         fw.close();
     }
 

@@ -43,10 +43,10 @@ public class CommandLineOptions {
     boolean usageHelpRequested;
 
     @Option(
-            names = "--source-numbers",
-            description = "Print out source numbers instead of IR for call sites."
+            names = "--no-source-numbers",
+            description = "Print out IR instead of source numbers."
     )
-    public boolean sourceNumbers;
+    public boolean noSourceNumbers;
     @Option(
             names = "--handleStaticInit",
             description =
