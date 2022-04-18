@@ -10,6 +10,7 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
@@ -171,7 +172,50 @@ class Application {
             default:
                 throw new IllegalArgumentException("Invalid call graph algorithm.");
         }
-        CallGraph cg = builder.makeCallGraph(options, null);
+        long startTime = System.currentTimeMillis();
+
+        MonitorUtil.IProgressMonitor pm = new MonitorUtil.IProgressMonitor() {
+            private boolean cancelled;
+
+            @Override
+            public void beginTask(String s, int i) {
+
+            }
+
+            @Override
+            public void subTask(String s) {
+
+            }
+
+            @Override
+            public void cancel() {
+                cancelled = true;
+            }
+
+            @Override
+            public boolean isCanceled() {
+                if (System.currentTimeMillis() - startTime > clo.timeout) {
+                    cancelled = true;
+                }
+                return cancelled;
+            }
+
+            @Override
+            public void done() {
+
+            }
+
+            @Override
+            public void worked(int i) {
+
+            }
+
+            @Override
+            public String getCancelMessage() {
+                return "Timed out.";
+            }
+        };
+        CallGraph cg = builder.makeCallGraph(options, pm);
         return cg;
     }
 }

@@ -43,6 +43,13 @@ public class CommandLineOptions {
     boolean usageHelpRequested;
 
     @Option(
+            names= {"--timeout", "-t"},
+            description ="Timeout in milliseconds.",
+            defaultValue = "7200000"
+    )
+    public long timeout;
+
+    @Option(
             names = "--no-source-numbers",
             description = "Print out IR instead of source numbers."
     )
