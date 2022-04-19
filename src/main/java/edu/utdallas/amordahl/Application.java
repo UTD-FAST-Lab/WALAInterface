@@ -1,52 +1,26 @@
 package edu.utdallas.amordahl;
 
 import com.ibm.wala.classLoader.CallSiteReference;
-import com.ibm.wala.classLoader.IBytecodeMethod;
-import com.ibm.wala.classLoader.JarFileEntry;
 import com.ibm.wala.classLoader.Language;
-import com.ibm.wala.ipa.callgraph.impl.ExplicitCallGraph;
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
-import com.ibm.wala.ssa.SSANewInstruction;
-import com.ibm.wala.util.MonitorUtil;
-import com.ibm.wala.util.config.AnalysisScopeReader;
-import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
-import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.CGNode;
-import com.ibm.wala.ipa.callgraph.CallGraph;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.jar.JarFile;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ibm.wala.util.config.AnalysisScopeReader;
 import picocli.CommandLine;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Iterator;
 
 class Application {
 
-    private String jarFile;
-
-    private static Logger logger = LoggerFactory.getLogger(Application.class);
+    //private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     private static CommandLineOptions clo;
 
@@ -70,20 +44,10 @@ class Application {
             while (callSiteIterator.hasNext()) {
                 CallSiteReference csi = callSiteIterator.next();
                 for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
-                    String outLine = null;
-                    if (!clo.noSourceNumbers) {
-                        int lineNumber = getLineNumber(cgn, csi);
-                        outLine = lineNumber == -1 ? "N/A" :
-                                String.format("%s:%d", cgn.getMethod().getDeclaringClass().getName().
-                                                toString().substring(1), // substring to remove the L from the beginning of the type
-                                lineNumber);
-                    } else {
-                        outLine = csi.toString();
-                    }
                     fw.write(String.format(
                             "%s\t%s\t%s\t%s\t%s\n",
                             cgn.getMethod(),
-                            outLine,
+                            csi.toString(),
                             cgn.getContext(),
                             target.getMethod().getSignature(),
                             target.getContext()));
@@ -92,25 +56,6 @@ class Application {
         }
         System.out.println("Wrote callgraph to " + clo.callgraphOutput.toString());
         fw.close();
-    }
-
-    private static int getLineNumber(CGNode cgn, CallSiteReference csi) throws InvalidClassFileException {
-        // Get the IR object associated with the CGNode that contains the call site reference.
-        IR ir = ((ExplicitCallGraph.ExplicitNode) (cgn)).getIR();
-        for (SSAInstruction s : ir.getInstructions()) {
-            if (!cgn.getMethod().isWalaSynthetic()) { // We don't care about WALA's synthetic methods
-                String site = null;
-                if (s instanceof SSANewInstruction) {
-                    site = ((SSANewInstruction) s).getNewSite().toString();
-                } else if (s instanceof SSAInvokeInstruction) {
-                    site = ((SSAInvokeInstruction) s).getCallSite().toString();
-                }
-                if (site != null && site.equals(csi.toString())) {
-                    return ir.getMethod().getLineNumber(((IBytecodeMethod) ir.getMethod()).getBytecodeIndex(s.iIndex()));
-                }
-            }
-        }
-        return -1;
     }
 
     public CallGraph makeCallGraph(CommandLineOptions clo)
@@ -215,7 +160,6 @@ class Application {
                 return "Timed out.";
             }
         };
-        CallGraph cg = builder.makeCallGraph(options, pm);
-        return cg;
+        return builder.makeCallGraph(options, pm);
     }
 }
