@@ -8,11 +8,11 @@ import java.util.List;
 import picocli.CommandLine.Option;
 
 public class CommandLineOptions {
-    @Option(names = "--appJar", required = true, description = "The application to analyze.")
+    @Option(names = "--jars", required = true, description = "The JARS to analyze, separated by :")
     public String appJar;
 
     @Option(
-            names = {"--callgraph_output", "-o"},
+            names = {"--cgoutput", "-o"},
             required = true,
             description = "Where to write the callgraph.")
     public Path callgraphOutput;
