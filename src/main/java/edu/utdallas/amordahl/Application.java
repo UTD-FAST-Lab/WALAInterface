@@ -25,7 +25,7 @@ class Application {
     private static CommandLineOptions clo;
 
     public static void main(String[] args)
-            throws WalaException, CallGraphBuilderCancelException, IOException, InvalidClassFileException {
+            throws WalaException, CallGraphBuilderCancelException, IOException {
         // Initialize command line and print help if requested.
         Application.clo = new CommandLineOptions();
         new CommandLine(clo).parseArgs(args);
@@ -113,6 +113,9 @@ class Application {
                 break;
             case VANILLA_ZEROONE_CONTAINER_CFA:
                 builder = Util.makeVanillaZeroOneContainerCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+                break;
+            case ZERO_CONTAINER_CFA:
+                builder = Util.makeZeroContainerCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
                 break;
             default:
                 throw new IllegalArgumentException("Invalid call graph algorithm.");
