@@ -84,16 +84,9 @@ class Application {
             case NCFA:
                 builder = Util.makeNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
                 break;
-            case NOBJ:
-                builder = Util.makeNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
-                break;
             case VANILLA_NCFA:
                 builder =
                         Util.makeVanillaNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
-                break;
-            case VANILLA_NOBJ:
-                builder =
-                        Util.makeVanillaNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
                 break;
             case RTA:
                 builder = Util.makeRTABuilder(options, new AnalysisCacheImpl(), cha, scope);
