@@ -88,7 +88,7 @@ public class CommandLineOptions {
     @Option(
             names = "--handleZeroLengthArray",
             description = "Should call graph construction handle " + "arrays of zero-length differently?",
-            defaultValue = true)
+            defaultValue = "true")
     public boolean handleZeroLengthArray;
 
     @Option(
