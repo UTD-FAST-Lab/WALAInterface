@@ -2,8 +2,6 @@ package edu.utdallas.amordahl;
 
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import picocli.CommandLine.Option;
 
@@ -55,11 +53,11 @@ public class CommandLineOptions {
     )
     public boolean noSourceNumbers;
     @Option(
-            names = "--handleStaticInit",
+            names = "--noHandleStaticInit",
             description =
                     "Should call graph construction handle "
                             + "possible invocations of static initializer methods?")
-    public boolean handleStaticInit;
+    public boolean noHandleStaticInit;
 
     @Option(
             names = "--useConstantSpecificKeys",
@@ -86,9 +84,10 @@ public class CommandLineOptions {
     public int maxNumberOfNodes;
 
     @Option(
-            names = "--handleZeroLengthArray",
+            names = "--noHandleZeroLengthArray",
             description = "Should call graph construction handle " + "arrays of zero-length differently?")
-    public boolean handleZeroLengthArray;
+    public boolean noHandleZeroLengthArray;
+
 
     @Option(
             names = "--cgalgo",

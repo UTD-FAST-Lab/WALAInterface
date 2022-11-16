@@ -8,7 +8,6 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
@@ -69,12 +68,12 @@ class Application {
                 com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha);
         AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
         options.setReflectionOptions(clo.reflection);
-        options.setHandleStaticInit(clo.handleStaticInit);
+        options.setHandleStaticInit(!clo.noHandleStaticInit);
         options.setUseConstantSpecificKeys(clo.useConstantSpecificKeys);
         options.setUseStacksForLexicalScoping(clo.useStacksForLexicalScoping);
         options.setUseLexicalScopingForGlobals(clo.useLexicalScopingForGlobals);
         options.setMaxNumberOfNodes(clo.maxNumberOfNodes);
-        options.setHandleZeroLengthArray(clo.handleZeroLengthArray);
+        options.setHandleZeroLengthArray(!clo.noHandleZeroLengthArray);
 
         // //
         // build the call graph
