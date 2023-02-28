@@ -8,10 +8,10 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.shrike.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
-import com.ibm.wala.util.config.AnalysisScopeReader;
+import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import picocli.CommandLine;
 
 import java.io.FileWriter;
@@ -60,13 +60,15 @@ class Application {
 
     public CallGraph makeCallGraph(CommandLineOptions clo)
             throws ClassHierarchyException, IOException, CallGraphBuilderCancelException {
+                
         AnalysisScope scope =
-                AnalysisScopeReader.makeJavaBinaryAnalysisScope(clo.appJar, null);
+                AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar, null);
+                
 
         ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
         Iterable<Entrypoint> entrypoints =
-                com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha);
+                com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(cha);
         AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
         options.setReflectionOptions(clo.reflection);
         options.setHandleStaticInit(clo.handleStaticInit);
@@ -82,40 +84,40 @@ class Application {
         CallGraphBuilder<InstanceKey> builder;
         switch (clo.callGraphBuilder) {
             case NCFA:
-                builder = Util.makeNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case NOBJ:
-                builder = Util.makeNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_NCFA:
                 builder =
-                        Util.makeVanillaNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
+                        Util.makeVanillaNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_NOBJ:
                 builder =
-                        Util.makeVanillaNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha, scope);
+                        Util.makeVanillaNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case RTA:
-                builder = Util.makeRTABuilder(options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeRTABuilder(options, new AnalysisCacheImpl(), cha);
                 break;
             case ZERO_CFA:
-                builder = Util.makeZeroCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeZeroCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha);
                 break;
             case ZEROONE_CFA:
-                builder = Util.makeZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_ZEROONECFA:
                 builder =
-                        Util.makeVanillaZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
+                        Util.makeVanillaZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha);
                 break;
             case ZEROONE_CONTAINER_CFA:
-                builder = Util.makeZeroOneContainerCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeZeroOneContainerCFABuilder(options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_ZEROONE_CONTAINER_CFA:
-                builder = Util.makeVanillaZeroOneContainerCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeVanillaZeroOneContainerCFABuilder(options, new AnalysisCacheImpl(), cha);
                 break;
             case ZERO_CONTAINER_CFA:
-                builder = Util.makeZeroContainerCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+                builder = Util.makeZeroContainerCFABuilder(options, new AnalysisCacheImpl(), cha);
                 break;
             default:
                 throw new IllegalArgumentException("Invalid call graph algorithm.");
