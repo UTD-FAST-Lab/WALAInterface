@@ -67,7 +67,7 @@ public class CommandLineOptions {
     public boolean useConstantSpecificKeys;
 
     @Option(
-            names = "--useStacksForLexcialScoping",
+            names = "--useStacksForLexicalScoping",
             description = "Should analysis of lexical " + "scoping consider call stacks?")
     public boolean useStacksForLexicalScoping;
 
