@@ -2,16 +2,16 @@ package edu.utdallas.amordahl;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.Language;
+import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.shrike.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
-import com.ibm.wala.util.config.AnalysisScopeReader;
 import picocli.CommandLine;
 
 import java.io.FileWriter;
@@ -45,12 +45,12 @@ class Application {
                 CallSiteReference csi = callSiteIterator.next();
                 for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
                     fw.write(String.format(
-                            "%s\t%s\t%s\t%s\t%s\n",
+                            "Caller: %s:%s\tCallee: %s\tContext: %s\n",
                             cgn.getMethod(),
-                            csi.toString(),
-                            cgn.getContext(),
+                            csi.toString(),                   
                             target.getMethod().getSignature(),
-                            target.getContext()));
+                            target.getContext()
+                            ));
                 }
             }
         }
@@ -61,7 +61,7 @@ class Application {
     public CallGraph makeCallGraph(CommandLineOptions clo)
             throws ClassHierarchyException, IOException, CallGraphBuilderCancelException {
         AnalysisScope scope =
-                AnalysisScopeReader.makeJavaBinaryAnalysisScope(clo.appJar, null);
+                AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar, null);
 
         ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
@@ -69,12 +69,12 @@ class Application {
                 com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha);
         AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
         options.setReflectionOptions(clo.reflection);
-        options.setHandleStaticInit(clo.handleStaticInit);
+        options.setHandleStaticInit(!clo.disableHandleStaticInit);
         options.setUseConstantSpecificKeys(clo.useConstantSpecificKeys);
         options.setUseStacksForLexicalScoping(clo.useStacksForLexicalScoping);
         options.setUseLexicalScopingForGlobals(clo.useLexicalScopingForGlobals);
         options.setMaxNumberOfNodes(clo.maxNumberOfNodes);
-        options.setHandleZeroLengthArray(clo.handleZeroLengthArray);
+        options.setHandleZeroLengthArray(!clo.disableHandleZeroLengthArray);
 
         // //
         // build the call graph

@@ -55,11 +55,11 @@ public class CommandLineOptions {
     )
     public boolean noSourceNumbers;
     @Option(
-            names = "--handleStaticInit",
+            names = "--disableHandleStaticInit",
             description =
                     "Should call graph construction handle "
                             + "possible invocations of static initializer methods?")
-    public boolean handleStaticInit;
+    public boolean disableHandleStaticInit;
 
     @Option(
             names = "--useConstantSpecificKeys",
@@ -86,10 +86,9 @@ public class CommandLineOptions {
     public int maxNumberOfNodes;
 
     @Option(
-            names = "--handleZeroLengthArray",
-            description = "Should call graph construction handle " + "arrays of zero-length differently?",
-            defaultValue = "true")
-    public boolean handleZeroLengthArray;
+            names = "--disableHandleZeroLengthArray",
+            description = "Should call graph construction handle " + "arrays of zero-length differently?")
+    public boolean disableHandleZeroLengthArray;
 
     @Option(
             names = "--cgalgo",
