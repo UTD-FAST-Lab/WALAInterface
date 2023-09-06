@@ -14,6 +14,7 @@ import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
@@ -60,8 +61,8 @@ class Application {
 
     public CallGraph makeCallGraph(CommandLineOptions clo)
             throws ClassHierarchyException, IOException, CallGraphBuilderCancelException {
-        AnalysisScope scope =
-                AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar, null);
+        AnalysisScope scope = 
+                AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar, new File("resources/exclusions.txt"));
 
         ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
