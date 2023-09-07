@@ -25,7 +25,8 @@ import java.util.Map;
 
 class Application {
 
-    //private static final Logger logger = LoggerFactory.getLogger(Application.class);
+    // private static final Logger logger =
+    // LoggerFactory.getLogger(Application.class);
 
     private static CommandLineOptions clo;
 
@@ -53,7 +54,7 @@ class Application {
                     final Map<String, String> callGraphEdge = new HashMap<String, String>();
                     callGraphEdge.put("caller", cgn.getMethod().getSignature());
                     callGraphEdge.put("callInstruction", csi.toString());
-                    callGraphEdge.put("target", target.getMethod().getSignature());
+                    callGraphEdge.put("actualTarget", target.getMethod().getSignature());
                     callGraphEdge.put("context", target.getContext().toString());
                     callGraph.add(callGraphEdge);
                 }
@@ -66,13 +67,12 @@ class Application {
 
     public CallGraph makeCallGraph(final CommandLineOptions clo)
             throws ClassHierarchyException, IOException, CallGraphBuilderCancelException {
-        final AnalysisScope scope = 
-                AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar, new File("resources/exclusions.txt"));
+        final AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar,
+                new File("resources/exclusions.txt"));
 
         final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
-        final Iterable<Entrypoint> entrypoints =
-                com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(cha);
+        final Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(cha);
         final AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
         options.setReflectionOptions(clo.reflection);
         options.setHandleStaticInit(!clo.disableHandleStaticInit);
@@ -94,12 +94,10 @@ class Application {
                 builder = Util.makeNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_NCFA:
-                builder =
-                        Util.makeVanillaNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
+                builder = Util.makeVanillaNCFABuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_NOBJ:
-                builder =
-                        Util.makeVanillaNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
+                builder = Util.makeVanillaNObjBuilder(clo.sensitivity, options, new AnalysisCacheImpl(), cha);
                 break;
             case RTA:
                 builder = Util.makeRTABuilder(options, new AnalysisCacheImpl(), cha);
@@ -111,8 +109,7 @@ class Application {
                 builder = Util.makeZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha);
                 break;
             case VANILLA_ZEROONECFA:
-                builder =
-                        Util.makeVanillaZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha);
+                builder = Util.makeVanillaZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha);
                 break;
             case ZEROONE_CONTAINER_CFA:
                 builder = Util.makeZeroOneContainerCFABuilder(options, new AnalysisCacheImpl(), cha);
