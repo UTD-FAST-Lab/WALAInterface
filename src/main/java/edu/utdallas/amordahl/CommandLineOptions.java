@@ -2,9 +2,6 @@ package edu.utdallas.amordahl;
 
 import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
 import picocli.CommandLine.Option;
 
 public class CommandLineOptions {
