@@ -60,7 +60,14 @@ class Application {
                 }
             }
         }
-        fw.write(new ObjectMapper().writeValueAsString(callGraph));
+        ObjectMapper om = new ObjectMapper();
+        fw.write("[");
+        Iterator<Map<String, String>> callGraphIterator = callGraph.iterator();
+        while (callGraphIterator.hasNext()) {
+            fw.write(om.writeValueAsString(callGraphIterator.next()));
+            if (callGraphIterator.hasNext()) fw.write(",");
+        }
+        fw.write("]");
         System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
         fw.close();
     }
