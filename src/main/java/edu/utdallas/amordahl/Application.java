@@ -65,7 +65,6 @@ class Application {
         int intervalSize = 1000000;
         if (callGraph.size() < intervalSize) {
             writeChunkToFile(callGraph, Application.clo.callgraphOutput.toString());
-            System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
         }
         else {
             System.out.println("Writing in chunks of " + intervalSize + " in order to prevent huge files.");
@@ -75,7 +74,6 @@ class Application {
                 String file = Application.clo.callgraphOutput.toString() + iteration;
                 writeChunkToFile(chunk, Application.clo.callgraphOutput.toString() + iteration);
                 System.out.println("Wrote chunk of callgraph to " + file);
-                iteration += 1;
             }
         }
     }
