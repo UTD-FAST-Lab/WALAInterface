@@ -44,8 +44,7 @@ class Application {
         final CallGraph cg = new Application().makeCallGraph(Application.clo);
 
         // Print to output.
-        final FileWriter fw = new FileWriter(String.valueOf(Application.clo.callgraphOutput));
-        final List<Map<String, String>> callGraph = new LinkedList<Map<String, String>>();
+        List<Map<String, String>> callGraph = new LinkedList<Map<String, String>>();
         for (final CGNode cgn : cg) {
             final Iterator<CallSiteReference> callSiteIterator = cgn.iterateCallSites();
             while (callSiteIterator.hasNext()) {
@@ -60,9 +59,33 @@ class Application {
                 }
             }
         }
+
+        // Break up call graph into multiple files, in order to prevent really big files.
+        int iteration = 0;
+        int intervalSize = 10000;
+        if (callGraph.size() < 10000) {
+            writeChunkToFile(callGraph, Application.clo.callgraphOutput.toString());
+            System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
+        }
+
+        else {
+            while (callGraph.size() > 10000) {
+                System.out.println("Writing in chunks of " + intervalSize + " in order to prevent huge files.");
+                List<Map<String, String>> chunk = callGraph.subList(0, intervalSize);
+                callGraph = callGraph.subList(intervalSize, callGraph.size());
+                String file = Application.clo.callgraphOutput.toString() + iteration;
+                writeChunkToFile(chunk, Application.clo.callgraphOutput.toString() + iteration);
+                System.out.println("Wrote chunk of callgraph to " + file);
+                iteration += 1;
+            }
+        }
+    }
+
+    private static void writeChunkToFile(List<Map<String, String>> chunk, String fileName) throws IOException {
+        final FileWriter fw = new FileWriter(fileName);
         ObjectMapper om = new ObjectMapper();
         fw.write("[");
-        Iterator<Map<String, String>> callGraphIterator = callGraph.iterator();
+        Iterator<Map<String, String>> callGraphIterator = chunk.iterator();
         while (callGraphIterator.hasNext()) {
             fw.write(om.writeValueAsString(callGraphIterator.next()));
             if (callGraphIterator.hasNext()) fw.write(",");
@@ -70,6 +93,7 @@ class Application {
         fw.write("]");
         System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
         fw.close();
+
     }
 
     public CallGraph makeCallGraph(final CommandLineOptions clo)
