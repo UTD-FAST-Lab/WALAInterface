@@ -69,7 +69,7 @@ class Application {
         }
 
         else {
-            while (callGraph.size() > 10000) {
+            while (callGraph.size() > 1000000) {
                 System.out.println("Writing in chunks of " + intervalSize + " in order to prevent huge files.");
                 List<Map<String, String>> chunk = callGraph.subList(0, intervalSize);
                 callGraph = callGraph.subList(intervalSize, callGraph.size());
