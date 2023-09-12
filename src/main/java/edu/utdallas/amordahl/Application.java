@@ -62,15 +62,14 @@ class Application {
 
         // Break up call graph into multiple files, in order to prevent really big files.
         int iteration = 0;
-        int intervalSize = 10000;
-        if (callGraph.size() < 10000) {
+        int intervalSize = 1000000;
+        if (callGraph.size() < intervalSize) {
             writeChunkToFile(callGraph, Application.clo.callgraphOutput.toString());
             System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
         }
-
         else {
-            while (callGraph.size() > 1000000) {
-                System.out.println("Writing in chunks of " + intervalSize + " in order to prevent huge files.");
+            System.out.println("Writing in chunks of " + intervalSize + " in order to prevent huge files.");
+            while (callGraph.size() >= intervalSize) {
                 List<Map<String, String>> chunk = callGraph.subList(0, intervalSize);
                 callGraph = callGraph.subList(intervalSize, callGraph.size());
                 String file = Application.clo.callgraphOutput.toString() + iteration;
@@ -93,7 +92,6 @@ class Application {
         fw.write("]");
         System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
         fw.close();
-
     }
 
     public CallGraph makeCallGraph(final CommandLineOptions clo)
