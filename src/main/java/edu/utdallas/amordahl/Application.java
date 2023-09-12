@@ -2,16 +2,22 @@ package edu.utdallas.amordahl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.wala.classLoader.CallSiteReference;
+import com.ibm.wala.classLoader.IBytecodeMethod;
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.CallString;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.CallStringContextSelector;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
+import com.ibm.wala.ssa.IR;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -54,12 +60,24 @@ class Application {
                     callGraphEdge.put("caller", cgn.getMethod().getSignature());
                     callGraphEdge.put("callInstruction", csi.toString());
                     callGraphEdge.put("actualTarget", target.getMethod().getSignature());
-                    callGraphEdge.put("context", target.getContext().toString());
-                    callGraph.add(callGraphEdge);
+
+                    ContextItem cs = target.getContext().get(CallStringContextSelector.CALL_STRING);
+                    if (Application.clo.callGraphBuilder == CallGraphBuilders.NCFA) {
+                        CallString context = (CallString)target.getContext().get(CallStringContextSelector.CALL_STRING);
+                        if (context != null) {
+                            for (int i = 0; i < context.getMethods().length; i++) {
+                                IMethod methodRef = context.getMethods()[i];
+                                CallSiteReference csr = context.getCallSiteRefs()[i];
+                                if (target.toString().contains("Application")) {
+                                    System.out.println("Original context is " + context);
+                                    System.out.println("This corresponds to " + methodRef.getDeclaringClass().toString() + ":" + methodRef.getLineNumber(csr.getProgramCounter()));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-
         // Break up call graph into multiple files, in order to prevent really big files.
         int iteration = 0;
         int intervalSize = 1000000;
