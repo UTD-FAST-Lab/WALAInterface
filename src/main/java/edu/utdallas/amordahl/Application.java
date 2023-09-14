@@ -2,7 +2,6 @@ package edu.utdallas.amordahl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.wala.classLoader.CallSiteReference;
-import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.util.config.AnalysisScopeReader;
@@ -14,7 +13,6 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.CallStringContextSelector;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
-import com.ibm.wala.ssa.IR;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
 import picocli.CommandLine;
@@ -22,11 +20,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class Application {
 
