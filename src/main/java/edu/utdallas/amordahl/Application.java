@@ -8,8 +8,7 @@ import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.CallString;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.CallStringContextSelector;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.*;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
@@ -71,6 +70,13 @@ class Application {
                                 contexts.add(contextString);
                             }
                         }
+                    } else if (Application.clo.callGraphBuilder == CallGraphBuilders.NOBJ) {
+                        AllocationString context = (AllocationString) target.getContext().get(nObjContextSelector.ALLOCATION_STRING_KEY);
+                        if (context != null) {
+                            for()
+                        }
+                        System.out.println("");
+
                     }
                     callGraphEdge.put("contexts", contexts.toString());
                     //System.out.println("Context list is " + contexts.toString());
@@ -92,6 +98,7 @@ class Application {
                 String file = Application.clo.callgraphOutput.toString() + iteration;
                 writeChunkToFile(chunk, Application.clo.callgraphOutput.toString() + iteration);
                 System.out.println("Wrote chunk of callgraph to " + file);
+                iteration += 1;
             }
         }
     }
