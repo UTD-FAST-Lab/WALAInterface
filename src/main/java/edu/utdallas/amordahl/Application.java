@@ -76,7 +76,10 @@ class Application {
                         if (context != null) {
                             for (int i = 0; i < context.getAllocationSites().length; i++) {
                                 AllocationSite as = context.getAllocationSites()[i];
-                                String contextString = as.getMethod().getDeclaringClass().getName().toString().substring(1).replace("/",".") + "." + as.getMethod().getName() + as.getMethod().getDescriptor() + ":" + as.getMethod().getLineNumber(as.getSite().getProgramCounter());
+                                String contextString = as.getMethod().getDeclaringClass().getName().toString()
+                                        .substring(1).replace("/",".") + "." +
+                                        as.getMethod().getName() + as.getMethod().getDescriptor() + ":" +
+                                        as.getMethod().getLineNumber(as.getSite().getProgramCounter());
                                 contexts.add(contextString);
                             }
                         }
