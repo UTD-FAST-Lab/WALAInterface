@@ -17,7 +17,6 @@ import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
-import jdk.nashorn.internal.codegen.CompilerConstants;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -51,30 +50,35 @@ class Application {
 
         // Print to output.
         List<Map<String, String>> callGraph = new LinkedList<Map<String, String>>();
-        for (final CGNode cgn : cg) {
-            final Iterator<CallSiteReference> callSiteIterator = cgn.iterateCallSites();
+        for (final CGNode callGraphNode : cg) {
+            final Iterator<CallSiteReference> callSiteIterator = callGraphNode.iterateCallSites();
             while (callSiteIterator.hasNext()) {
-                final CallSiteReference csi = callSiteIterator.next();
-                for (final CGNode target : cg.getPossibleTargets(cgn, csi)) {
+                final CallSiteReference callSite = callSiteIterator.next();
+                for (final CGNode target : cg.getPossibleTargets(callGraphNode, callSite)) {
                     final Map<String, String> callGraphEdge = new HashMap<String, String>();
-                    callGraphEdge.put("caller", cgn.getMethod().getSignature());
-                    callGraphEdge.put("callInstruction", csi.toString());
+                    callGraphEdge.put("caller", callGraphNode.getMethod().getSignature());
+                    callGraphEdge.put("callInstruction", callSite.toString());
                     callGraphEdge.put("actualTarget", target.getMethod().getSignature());
-
-                    ContextItem cs = target.getContext().get(CallStringContextSelector.CALL_STRING);
+                    List<String> contexts = new LinkedList<String>();
                     if (Application.clo.callGraphBuilder == CallGraphBuilders.NCFA) {
-                        CallString context = (CallString)target.getContext().get(CallStringContextSelector.CALL_STRING);
-                        if (context != null) {
+                        // Then we know the context is a CallString type.
+                        CallString context = (CallString) target.getContext().get(CallStringContextSelector.CALL_STRING);
+                        if (context != null) { // if it's null that means that it was an Everywhere context and we don't have to worry about it.
                             for (int i = 0; i < context.getMethods().length; i++) {
                                 IMethod methodRef = context.getMethods()[i];
                                 CallSiteReference csr = context.getCallSiteRefs()[i];
-                                if (target.toString().contains("Application")) {
-                                    System.out.println("Original context is " + context);
-                                    System.out.println("This corresponds to " + methodRef.getDeclaringClass().toString() + ":" + methodRef.getLineNumber(csr.getProgramCounter()));
-                                }
+                                int realLineNumber = methodRef.getLineNumber(csr.getProgramCounter());
+                                String contextString = methodRef.getDeclaringClass().getName().toString()
+                                        .substring(1).replace("/", ".") + "." +
+                                        methodRef.getName() + methodRef.getDescriptor() + ":" +
+                                        realLineNumber;
+                                contexts.add(contextString);
                             }
                         }
                     }
+                    callGraphEdge.put("contexts", contexts.toString());
+                    //System.out.println("Context list is " + contexts.toString());
+                    callGraph.add(callGraphEdge);
                 }
             }
         }
@@ -83,8 +87,8 @@ class Application {
         int intervalSize = 1000000;
         if (callGraph.size() < intervalSize) {
             writeChunkToFile(callGraph, Application.clo.callgraphOutput.toString());
-        }
-        else {
+            System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
+        } else {
             System.out.println("Writing in chunks of " + intervalSize + " in order to prevent huge files.");
             while (callGraph.size() >= intervalSize) {
                 List<Map<String, String>> chunk = callGraph.subList(0, intervalSize);
@@ -106,7 +110,6 @@ class Application {
             if (callGraphIterator.hasNext()) fw.write(",");
         }
         fw.write("]");
-        System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
         fw.close();
     }
 
