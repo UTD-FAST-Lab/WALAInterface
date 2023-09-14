@@ -13,6 +13,7 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.CallStringContextSelector;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
+import com.ibm.wala.properties.WalaProperties;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
 import picocli.CommandLine;
@@ -38,6 +39,7 @@ class Application {
             CommandLine.usage(new CommandLineOptions(), System.out);
             return;
         }
+        System.out.println("WALA Property java_runtime_dir is " + Arrays.toString(WalaProperties.getJ2SEJarFiles()));
 
         // Build call graph.
         final CallGraph cg = new Application().makeCallGraph(Application.clo);
