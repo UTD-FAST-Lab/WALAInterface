@@ -7,6 +7,7 @@ import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import com.ibm.wala.ipa.callgraph.*;
 import com.ibm.wala.ipa.callgraph.impl.Util;
+import com.ibm.wala.ipa.callgraph.propagation.AllocationSite;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.*;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
@@ -72,6 +73,13 @@ class Application {
                         }
                     } else if (Application.clo.callGraphBuilder == CallGraphBuilders.NOBJ) {
                         AllocationString context = (AllocationString) target.getContext().get(nObjContextSelector.ALLOCATION_STRING_KEY);
+                        if (context != null) {
+                            for (int i = 0; i < context.getAllocationSites().length; i++) {
+                                AllocationSite as = context.getAllocationSites()[i];
+                                String contextString = as.getMethod().getDeclaringClass().getName().toString().substring(1).replace("/",".") + "." + as.getMethod().getName() + as.getMethod().getDescriptor() + ":" + as.getMethod().getLineNumber(as.getSite().getProgramCounter());
+                                contexts.add(contextString);
+                            }
+                        }
                     }
                     callGraphEdge.put("contexts", contexts.toString());
                     //System.out.println("Context list is " + contexts.toString());
