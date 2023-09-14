@@ -72,11 +72,6 @@ class Application {
                         }
                     } else if (Application.clo.callGraphBuilder == CallGraphBuilders.NOBJ) {
                         AllocationString context = (AllocationString) target.getContext().get(nObjContextSelector.ALLOCATION_STRING_KEY);
-                        if (context != null) {
-                            for()
-                        }
-                        System.out.println("");
-
                     }
                     callGraphEdge.put("contexts", contexts.toString());
                     //System.out.println("Context list is " + contexts.toString());
