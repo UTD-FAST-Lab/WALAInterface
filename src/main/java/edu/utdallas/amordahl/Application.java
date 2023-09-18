@@ -106,6 +106,7 @@ class Application {
                 System.out.println("Wrote chunk of callgraph to " + file);
                 iteration += 1;
             }
+            writeChunkToFile(callGraph, Application.clo.callgraphOutput.toString() + iteration);
         }
     }
 
