@@ -113,13 +113,7 @@ class Application {
     private static void writeChunkToFile(List<Map<String, String>> chunk, String fileName) throws IOException {
         final FileWriter fw = new FileWriter(fileName);
         ObjectMapper om = new ObjectMapper();
-        fw.write("[");
-        Iterator<Map<String, String>> callGraphIterator = chunk.iterator();
-        while (callGraphIterator.hasNext()) {
-            fw.write(om.writeValueAsString(callGraphIterator.next()));
-            if (callGraphIterator.hasNext()) fw.write(",");
-        }
-        fw.write("]");
+        fw.write(om.writerWithDefaultPrettyPrinter().writeValueAsString(chunk));
         fw.close();
     }
 
