@@ -14,9 +14,14 @@ import com.ibm.wala.util.WalaException;
 import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 class Application {
 
@@ -37,25 +42,48 @@ class Application {
         // Build call graph.
         CallGraph cg = new Application().makeCallGraph(clo);
 
+        Map<String, List<String>> keyValuesMap = new HashMap<>();
         // Print to output.
-        FileWriter fw = new FileWriter(String.valueOf(clo.callgraphOutput));
         for (CGNode cgn : cg) {
             Iterator<CallSiteReference> callSiteIterator = cgn.iterateCallSites();
             while (callSiteIterator.hasNext()) {
                 CallSiteReference csi = callSiteIterator.next();
                 for (CGNode target : cg.getPossibleTargets(cgn, csi)) {
-                    fw.write(String.format(
-                            "%s\t%s\t%s\t%s\t%s\n",
-                            cgn.getMethod(),
-                            csi.toString(),
-                            cgn.getContext(),
-                            target.getMethod().getSignature(),
-                            target.getContext()));
+                    try {
+                        addValue(keyValuesMap, cgn.getMethod().toString(), target.getMethod().getSignature());
+                    } catch (NullPointerException e) {
+                        System.err.println("Could not process node " + csi.toString());
+                    }
                 }
             }
         }
+        convertHashMapToJson(keyValuesMap, clo.callgraphOutput.toString());
         System.out.println("Wrote callgraph to " + clo.callgraphOutput.toString());
-        fw.close();
+    }
+
+    private static void addValue(Map<String, List<String>> map, String key, String value) {
+        // If the key is not present, create a new list
+        map.putIfAbsent(key, new ArrayList<>());
+        // Add the value to the list associated with the key
+        map.get(key).add(value);
+    }
+
+    private static void convertHashMapToJson(Map<String, List<String>> map, String output) {
+        try {
+            // Create an ObjectMapper
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // Convert the HashMap to JSON string
+            String jsonString = objectMapper.writeValueAsString(map);
+
+            // Convert JSON string to a JSON object (JsonNode)
+            Object jsonNode = objectMapper.readValue(jsonString, Object.class);
+            objectMapper.writeValue(new File(output), jsonNode);
+
+        } catch (IOException e) {
+            // Handle exception if necessary
+            e.printStackTrace();
+        }
     }
 
     public CallGraph makeCallGraph(CommandLineOptions clo)
