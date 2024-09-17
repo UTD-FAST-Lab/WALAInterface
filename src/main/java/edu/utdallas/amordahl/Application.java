@@ -1,21 +1,42 @@
 package edu.utdallas.amordahl;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.util.config.AnalysisScopeReader;
-import com.ibm.wala.ipa.callgraph.*;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
+import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.Util;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSite;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.*;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.AllocationString;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.CallString;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.CallStringContextSelector;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.nObjContextSelector;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.properties.WalaProperties;
 import com.ibm.wala.util.MonitorUtil;
 import com.ibm.wala.util.WalaException;
+
 import picocli.CommandLine;
 
 import java.io.File;
@@ -75,7 +96,7 @@ class Application {
 								int realLineNumber = methodRef.getLineNumber(csr.getProgramCounter());
 								String contextString = methodRef.getDeclaringClass().getName().toString().substring(1)
 										.replace("/", ".") + "." + methodRef.getName() + methodRef.getDescriptor() + ":"
-										+ realLineNumber;
+										+ csr.getDeclaredTarget() + ":" + realLineNumber;
 								contexts.add(contextString);
 							}
 						}
@@ -87,7 +108,7 @@ class Application {
 								AllocationSite as = context.getAllocationSites()[i];
 								String contextString = as.getMethod().getDeclaringClass().getName().toString()
 										.substring(1).replace("/", ".") + "." + as.getMethod().getName()
-										+ as.getMethod().getDescriptor() + ":"
+										+ as.getMethod().getDescriptor() + ":" + as.getSite() + ":"
 										+ as.getMethod().getLineNumber(as.getSite().getProgramCounter());
 								contexts.add(contextString);
 							}
@@ -99,8 +120,8 @@ class Application {
 				}
 			}
 		}
-
-		// Write the call graph
+		// Break up call graph into multiple files, in order to prevent really big
+		// files.
 		writeChunkToFile(callGraph, Application.clo.callgraphOutput.toString());
 		System.out.println("Wrote callgraph to " + Application.clo.callgraphOutput.toString());
 	}
@@ -108,14 +129,7 @@ class Application {
 	private static void writeChunkToFile(List<Map<String, String>> chunk, String fileName) throws IOException {
 		final FileWriter fw = new FileWriter(fileName);
 		ObjectMapper om = new ObjectMapper();
-		fw.write("[");
-		Iterator<Map<String, String>> callGraphIterator = chunk.iterator();
-		while (callGraphIterator.hasNext()) {
-			fw.write(om.writeValueAsString(callGraphIterator.next()));
-			if (callGraphIterator.hasNext())
-				fw.write(",");
-		}
-		fw.write("]");
+		fw.write(om.writerWithDefaultPrettyPrinter().writeValueAsString(chunk));
 		fw.close();
 	}
 
