@@ -158,6 +158,7 @@ class Application {
 							.filter(path -> path.toString().endsWith(".jar")).map(Path::toString) // Convert Path to
 																									// String
 							.collect(Collectors.joining(File.pathSeparator)); // Join the file paths with a colon
+					System.err.println("Jar files in directory " + p.toString() + " are " + jarFilesList);
 					jars.append(jarFilesList);
 					if (jarIt.hasNext()) {
 						jars.append(File.pathSeparator);
