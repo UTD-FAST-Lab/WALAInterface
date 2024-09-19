@@ -45,9 +45,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>amordahl</groupId>
+            <groupId>com.ibm.wala</groupId>
             <artifactId>com.ibm.wala.core</artifactId>
-            <version>1.6.6</version>
+            <version>1.5.9</version>
         </dependency>
         <dependency>
             <groupId>com.ibm.wala</groupId>
