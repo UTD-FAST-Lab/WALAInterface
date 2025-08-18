@@ -138,7 +138,7 @@ class Application {
 	public CallGraph makeCallGraph(final CommandLineOptions clo)
 			throws ClassHierarchyException, IOException, CallGraphBuilderCancelException {
 		final AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar,
-				new File("resources/exclusions.txt"));
+				new File("resources/exclusions_none.txt"));
 
 		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
