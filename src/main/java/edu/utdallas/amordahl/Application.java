@@ -62,14 +62,22 @@ class Application {
 		// Print to output.
 		List<Map<String, String>> callGraph = new LinkedList<Map<String, String>>();
 		for (final CGNode callGraphNode : cg) {
+			final IMethod callerMethod = callGraphNode.getMethod();
 			final Iterator<CallSiteReference> callSiteIterator = callGraphNode.iterateCallSites();
 			while (callSiteIterator.hasNext()) {
 				final CallSiteReference callSite = callSiteIterator.next();
+				
+				final int pc = callSite.getProgramCounter();
+				final int lineNumber = callerMethod.getLineNumber(pc);
+
 				for (final CGNode target : cg.getPossibleTargets(callGraphNode, callSite)) {
 					final Map<String, String> callGraphEdge = new HashMap<String, String>();
 					callGraphEdge.put("caller", callGraphNode.getMethod().getSignature());
 					callGraphEdge.put("callInstruction", callSite.toString());
 					callGraphEdge.put("actualTarget", target.getMethod().getSignature());
+
+					callGraphEdge.put("lineNumber", String.valueOf(lineNumber));
+
 					List<String> contexts = new LinkedList<String>();
 					if (Application.clo.callGraphBuilder == CallGraphBuilders.NCFA) {
 						// Then we know the context is a CallString type.
