@@ -99,4 +99,16 @@ public class CommandLineOptions {
                     "Level of context/object sensitivity (only used if cg algo is NCFA, NOBJ, VANILLA_NCFA, or VANILLA_NOBJ)",
             defaultValue = "1")
     public int sensitivity;
+
+    @Option(
+            names = "--exclusion",
+            description =
+                    "if set exclusion file will be used to exclude classes from analysis")
+    public boolean exclusion;
+
+    @Option(
+            names = "--entrypoints",
+            description =
+                    "Entryopint methods to use separated by :")
+    public String entrypoints;
 }

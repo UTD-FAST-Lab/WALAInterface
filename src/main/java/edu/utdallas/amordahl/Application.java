@@ -145,14 +145,40 @@ class Application {
 
 	public CallGraph makeCallGraph(final CommandLineOptions clo)
 			throws ClassHierarchyException, IOException, CallGraphBuilderCancelException {
-		final AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar,
-				// new File("resources/exclusions_none.txt"));
-				new File("resources/exclusions.txt"));
+		
+		final AnalysisScope scope;
+		// isExclude?
+		if (clo.exclusion) {
+			scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar,
+					new File("resources/exclusions.txt"));
+		} else {
+			scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(clo.appJar,
+					new File("resources/exclusions_none.txt"));
+		}
 
 		final ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
-		final Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(cha);
+		// if entrypoints are provided, use them
+		final Iterable<Entrypoint> entrypoints;
+		if (clo.entrypoints != null) {
+
+			// separate by :
+			String[] entrypointsArray = clo.entrypoints.split(":");
+			// fix format to  "L" + mainclass.replaceAll("\\.","/")
+			for (int i = 0; i < entrypointsArray.length; i++) {
+				entrypointsArray[i] = "L" + entrypointsArray[i].replaceAll("\\.", "/");
+			}
+			entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(cha, entrypointsArray);
+
+
+		} else {
+			entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(cha);
+		}
+
 		final AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
+
+
+		// Set additional analysis options
 		options.setReflectionOptions(clo.reflection);
 		options.setHandleStaticInit(!clo.disableHandleStaticInit);
 		options.setUseConstantSpecificKeys(clo.useConstantSpecificKeys);
